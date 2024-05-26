@@ -323,7 +323,9 @@ function Inference() {
             const formData = {
                 feedbackInfo: feedbackInfo,
                 username: userid,
-                projectname: projectname
+                projectname: projectname,
+                OriginImgName: selectedFiles[currentImgCount-1].name
+
             }
             setLoading(true)
             const token = localStorage.getItem('jwtToken');
