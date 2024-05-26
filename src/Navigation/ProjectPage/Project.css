@@ -1,0 +1,130 @@
+/* 增強專案導航鏈接的視覺效果 */
+.projectNavLink {
+  font-weight: bold;
+  color: #e4e2e2 !important; /* 更清晰的顏色 */
+  margin-top: 60px;
+  text-decoration: none; /* 移除下劃線 */
+  transition: color 0.3s ease; /* 平滑顏色變化 */
+}
+
+/* 登出按鈕樣式 */
+.logoutButton {
+  background-color: #6a6a6a !important;
+  color: white !important;
+  transition: background-color 0.3s ease; /* 平滑背景顏色變化 */
+}
+
+.logoutButton:hover {
+  background-color: #1c1c1c !important;
+}
+
+/* 刪除按鈕樣式 */
+.deleteButton {
+  background-color: #6a6a6a !important;
+  color: white !important;
+  transition: background-color 0.3s ease; /* 平滑背景顏色變化 */
+}
+
+.deleteButton:hover {
+  background-color: #1c1c1c !important;
+}
+
+/* 專案卡片樣式 */
+.project-blue, .project {
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  margin: 10px 0 10px 0;
+  width: 300px;
+  transition: box-shadow 0.3s ease; /* 平滑陰影變化 */
+}
+
+.project-blue {
+  margin: 10px 10px;
+  background: linear-gradient(to bottom, #3d9ba6 0%, #0f685e 50%, #ffffff 50%);
+}
+
+.project {
+  margin: 10px 10px;
+  background: linear-gradient(to bottom, #5241a1 0%, #372782 50%, #ffffff 50%);
+}
+
+/* 新增專案按鈕樣式 */
+.add-project-button, .add-project-button2 {
+  background-color: #6d51ee !important;
+  color: #fff !important;
+  padding: 10px 20px !important;
+  cursor: pointer;
+  border: none; /* 移除邊框 */
+  border-radius: 5px; /* 添加圓角 */
+  transition: background-color 0.3s ease; /* 平滑背景顏色變化 */
+}
+
+.add-project-button:hover, .add-project-button2:hover {
+  background-color: #5d45c9 !important;
+}
+
+/* 網格顯示樣式 */
+.custom-border {
+  border-bottom: 2.5px solid #e6e2e2;
+  box-shadow: 5px 2.5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.project-list-grid {
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 300px;
+  grid-template-rows: 50px 50px 100px;
+  align-items: center;
+  grid-template-areas: 
+    "projectDetail"
+    "projectName"
+    "projectDelete";
+  grid-gap: 1px;
+  margin-bottom: 1px;
+}
+
+/* 專案名稱樣式 */
+.project-Name {
+  margin-top: 150px;
+  margin-left: 5px;
+  grid-area: projectName;
+  justify-self: start;
+  color: #383838;
+}
+
+/* 專案詳情樣式 */
+.project-Detail {
+  grid-area: projectDetail;
+  justify-self: start;
+}
+
+/* 專案刪除按鈕樣式 */
+.project-Delete {
+  width: 200px;
+  margin-top: 80px;
+  grid-area: projectDelete;
+  justify-self: start;
+}
+
+/* 專案導航樣式 */
+.project-Nav {
+  width: 200px;
+  margin-top: 80px;
+  grid-area: projectDelete;
+  justify-self: start;
+}
+
+/* 動畫效果 */
+@keyframes move {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* 專案圖片編號樣式 */
+.project-imgnum {
+  font-size: 15px !important;
+  color: #383838; /* 增加可讀性 */
+}

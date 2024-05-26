@@ -1,0 +1,23 @@
+.btn-customstyle{
+    background-color: #6D51EE !important ;
+    color: white !important;
+}
+
+.btn-customstyle:hover{
+    background-color: #5940CE ;
+    color: white;
+}
+
+.btn-customstyle:active{
+    background-color: #5940CE  !important;
+    color: white !important;
+}
+
+.btn-customstyle:focus{
+    background-color: #5940CE !important ;
+    color: white !important;
+}
+
+.custom-progress-bar {
+    background-color: #5940CE;
+}
