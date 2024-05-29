@@ -286,3 +286,37 @@ const [data, setData] = useState(null);
 
     fetchData();
   }, [url]);
+
+
+5/28 alert 狀態框製作
+
+import { Modal, Button } from "react-bootstrap";
+import instAI_newicon from "../../image/iconnew.png";
+
+const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalCallback, setModalCallback] = useState(null);
+
+  setModalMessage("Timed out, please log in again!");
+  setModalCallback(() => () => navigate("/login", { replace: true }));
+  setModalCallback(null);
+  setShowModal(true);
+
+   <Modal show={showModal} onHide={() => setShowModal(false)}>
+  <Modal.Header closeButton className="d-flex justify-content-between">
+    <Modal.Title></Modal.Title>
+    <img src={instAI_newicon} alt="InstAI Icon" style={{ width: '170px', height: '58px', marginLeft: "140px" }} />
+  </Modal.Header>
+  <Modal.Body className="text-center">{modalMessage}</Modal.Body>
+  <Modal.Footer className="justify-content-center">
+    <Button variant="secondary" onClick={() => setShowModal(false)} className="mr-2">
+      NO
+    </Button>
+    {modalCallback && (
+      <Button variant="primary" onClick={() => { modalCallback(); setShowModal(false); }} className="ml-2">
+        OK
+      </Button>
+    )}
+  </Modal.Footer>
+</Modal>
+  

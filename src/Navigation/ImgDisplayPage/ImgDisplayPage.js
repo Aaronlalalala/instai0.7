@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import { Navbar, Nav, Card, Container, Row, Col, Button, Form } from "react-bootstrap";
+import { Navbar, Nav, Card, Container, Row, Col,  Form } from "react-bootstrap";
 import InstAI_icon from "../../image/iconnew.png";
 import axios from "axios";
 import { FaRegClock } from "react-icons/fa";
 import './ImgDisplayPage.css'
 import AWS from 'aws-sdk';
 import Dropdown from 'react-bootstrap/Dropdown';
+import { Modal, Button } from "react-bootstrap";
+import instAI_newicon from "../../image/iconnew.png";
+
+
 export default function ImgDisplayPage() {
   const p = process.env;
   const u = p.REACT_APP_UPLOAD; //最後傳送要用到的api
@@ -29,7 +33,9 @@ export default function ImgDisplayPage() {
   const [selectImg, setSelectImg] = useState([]);
   const [chance, setChance] = useState();
   const [base64Data, setBase64Data] = useState([]);
-
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalCallback, setModalCallback] = useState(null);
   const [num, setNum] = useState(1);
 
   const id = localStorage.getItem("userId");
@@ -160,14 +166,11 @@ export default function ImgDisplayPage() {
   const resendPromptData = (event) => {
     if (chance > 0) {
       event.preventDefault();
-      const confirmed = window.confirm("Do you need to rewrite the prompt?");
-      if (!confirmed) {
-        postSDimg(promptData);
-        return;
-      } else {
-        const newPrompt = prompt("enter new prompt:");
+      setModalMessage("Do you need to rewrite the prompt?");
+      setModalCallback(() => {
+        const newPrompt = window.prompt("Enter new prompt:");
         if (newPrompt) {
-          const newNegativePrompt = prompt("enter new Negative prompt:");
+          const newNegativePrompt = window.prompt("Enter new Negative prompt:");
           if (newNegativePrompt) {
             const updatedPromptData = { ...promptData, prompt: newPrompt, negative_prompt: newNegativePrompt };
             setPromptData(updatedPromptData);
@@ -175,12 +178,15 @@ export default function ImgDisplayPage() {
             postSDimg(updatedPromptData);
           }
         }
-      }
+      });
+      setShowModal(true);
     } else {
-      alert("Your remaining count is zero");
+      setModalMessage("Your remaining count is zero");
+      setShowModal(true);
       console.log("no remaining count");
     }
   };
+  
 
   const downloadSingleImage = (base64, index) => {
     const link = document.createElement('a');
@@ -190,24 +196,24 @@ export default function ImgDisplayPage() {
   };
 
   const handleChangeState = () => {
-    const confirm = window.confirm("Sure to give up?");
-    if (confirm) {
+    setModalMessage("Sure to give up?");
+    setModalCallback(() => {
       setLoading(!loading);
-    }
+    });
+    setShowModal(true);
   };
+  
 
   const submitBatch = async() => {
     // console.log(selectImg)
-    const confirm = window.confirm("Sure to go to next step for model traing");
-    if (!confirm) {
-      return;
-    } else {
+    setModalMessage("Sure to go to next step for model traing");
+    setModalCallback(async () => {
       // console.log(selectImg);
       const token = localStorage.getItem('jwtToken');
-
+  
       // 建立一個新的FormData物件
       let formData = new FormData();
-
+  
       // 將每個選擇的圖片轉換為Blob物件，然後添加到FormData物件中
       selectImg.forEach((img, index) => {
         function base64ToBlob(base64) {
@@ -219,16 +225,16 @@ export default function ImgDisplayPage() {
           const byteArray = new Uint8Array(byteNumbers);
           return new Blob([byteArray]);
         }
-
+  
         let blob = base64ToBlob(img);
         formData.append('file', blob, `image${index}.jpg`);
-
+  
       });
-
+  
       // 添加其他需要的資訊
       formData.append('username', id);
       formData.append('projectname', projectName);
-
+  
       axios.post(`${u}?username=${id}&projectname=${projectName}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -239,7 +245,8 @@ export default function ImgDisplayPage() {
         if (response.data.message === 'Image uploaded successfully!') {
           setLoading(true);
           changeStep("Image upload");
-          alert("Image uploaded successfully!")
+          setModalMessage("Image uploaded successfully!");
+          setShowModal(true);
           navigate(`/Step?project=${projectName}`);
         } else {
           console.log("fail");
@@ -247,7 +254,7 @@ export default function ImgDisplayPage() {
       }).catch(error => {
         console.error('Error submitting data:', error);
       });
-
+  
       try {
         const token = localStorage.getItem('jwtToken');
         const formData2 = { quantity : selectImg.length , username : id , projectname : projectName};
@@ -265,9 +272,10 @@ export default function ImgDisplayPage() {
       } catch (error) {
         console.error('Error updating img quantity:', error);
       }
-
-    }
+    });
+    setShowModal(true);
   };
+  
 
 
   useEffect(() => {
@@ -312,14 +320,15 @@ export default function ImgDisplayPage() {
         // console.log("抓到這些資料",json);
         setBase64Data(Object.values(json)); // 將所有的base64字串存入base64Data
       } catch (error) {
-        alert("data is empty");
+        setModalMessage("data is empty");
+        setShowModal(true);
         console.log("error fetching");
         console.log(error)
       } finally {
         setLoading(false);
       }
-
     };
+    
 
     const pollForFile = async () => {
       setLoading(true);
@@ -493,12 +502,24 @@ export default function ImgDisplayPage() {
           </>
           )}
         </div>
-
-
-
-
-
-
+  
+        <Modal show={showModal} onHide={() => setShowModal(false)}>
+  <Modal.Header closeButton className="d-flex justify-content-between">
+    <Modal.Title></Modal.Title>
+    <img src={instAI_newicon} alt="InstAI Icon" style={{ width: '170px', height: '58px', marginLeft: "140px" }} />
+  </Modal.Header>
+  <Modal.Body className="text-center">{modalMessage}</Modal.Body>
+  <Modal.Footer className="justify-content-center">
+    <Button variant="secondary" onClick={() => setShowModal(false)} className="mr-2">
+      NO
+    </Button>
+    {modalCallback && (
+      <Button variant="primary" onClick={() => { modalCallback(); setShowModal(false); }} className="ml-2">
+        OK
+      </Button>
+    )}
+  </Modal.Footer>
+</Modal>
 
       </Container>
     </>

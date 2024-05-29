@@ -7,6 +7,8 @@ import axios from 'axios';
 import { Navbar, Nav, Button, Container, Row, Col, Card } from 'react-bootstrap';
 import imgTraining from "../../image/imgTraing.png";
 import modelTraing from "../../image/modelTraining.png";
+import { Modal} from "react-bootstrap";
+import instAI_newicon from "../../image/iconnew.png";
 
 function DecisionPage (){
     const location = useLocation();
@@ -16,33 +18,65 @@ function DecisionPage (){
     const type = searchParams.get("type");
     const p = process.env;
     const [typeOfProject, setTypeOfProject] = useState(1); //有使用生成的是1 沒有的是2
-    
+    const [showModal, setShowModal] = useState(false);
+    const [modalMessage, setModalMessage] = useState("");
+    const [modalCallback, setModalCallback] = useState(null);
+
     useEffect(()=>{
     },[]);
     
     const navigateModel = () => {
-      const y = window.confirm("確定直接進行模型訓練?");
-      if(y){
+      setModalMessage("確定直接進行模型訓練?");
+      setModalCallback(() => {
         const newTypeOfProject = 2; // 設置新的 typeOfProject 為 2
         setTypeOfProject(newTypeOfProject);
         navigate(`/CreatePage`,{state:{typeOfProject: newTypeOfProject}});
-      }
+      });
+      setShowModal(true);
     }
     
     const navigateImg = () => {
-      const y = window.confirm("確定前往圖片生成?");
-      if(y){
+      setModalMessage("確定前往圖片生成?");
+      setModalCallback(() => {
         const newTypeOfProject = 1; // 設置新的 typeOfProject 為 1
         setTypeOfProject(newTypeOfProject);
         navigate(`/CreatePage`,{state:{typeOfProject: newTypeOfProject}});
-      }
+      });
+      setShowModal(true);
     }
+    
     
     useEffect(() => {
       // console.log("project type is ", typeOfProject);
     }, [typeOfProject]); 
 
+    useEffect(() => {
+      if (!showModal && modalCallback) {
+        modalCallback();
+      }
+    }, [showModal]);
     
+    const AlertCard =() =>{
+      return(
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      <Modal.Header closeButton className="d-flex justify-content-between">
+        <Modal.Title></Modal.Title>
+        <img src={instAI_newicon} alt="InstAI Icon" style={{ width: '170px', height: '58px', marginLeft: "140px" }} />
+      </Modal.Header>
+      <Modal.Body className="text-center">{modalMessage}</Modal.Body>
+      <Modal.Footer className="justify-content-center">
+      <Button variant="secondary" onClick={() => { setShowModal(false); setModalCallback(null); }} className="mr-2">
+          NO
+       </Button>
+
+        {modalCallback && (
+          <Button variant="primary" onClick={() => { modalCallback(); setShowModal(false); }} className="ml-2">
+            OK
+          </Button>
+        )}
+      </Modal.Footer>
+    </Modal>)
+    }
 
     return (
       <div style={{ backgroundColor: 'white' }}> 
@@ -108,6 +142,7 @@ function DecisionPage (){
           </Col>
         </Row>
       </Container>
+      <AlertCard/>
       </div>
     );
   };

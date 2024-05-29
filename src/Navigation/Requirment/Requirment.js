@@ -5,6 +5,8 @@ import Prompt from "../../Components/Prompt/Prompt2";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./Requirment.css";
 import InstAI_icon from "../../image/instai_icon.png";
+import { Modal, Button } from "react-bootstrap";
+import instAI_newicon from "../../image/iconnew.png";
 //import ReviewReq from "../Review/ReviewReq";
 
 function Requirement() {
@@ -53,19 +55,30 @@ function Requirement() {
     console.log(`Field ${fieldName} updated to:`, value);
   };
 
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalCallback, setModalCallback] = useState(null);
+  
   const handleGenerateClick = async () => {
     const answer1Length = reqData.Requirement1.answer.trim().length;
     const answer2Length = reqData.Requirement2.answer.trim().length;
     if (answer1Length === 0 || answer2Length === 0) {
-      alert("Please answer both questions.");
+      setModalMessage("Please answer both questions.");
+      setShowModal(true);
     } else {
-      const confirmed = window.confirm(
-        `Are you sure you want to submit?`);
-      if (confirmed) {
+      setModalMessage(`Are you sure you want to submit?`);
+      setShowModal(true);
+  
+      // 定義一個函數，該函數將在用戶點擊 "OK" 按鈕時執行
+      const callback = () => {
         setIsDataChecked(true);
-      }
+      };
+  
+      // 將這個函數設定為 modalCallback
+      setModalCallback(() => callback);
     }
   };
+  
   // 修改狀態 2變成3
   const changeStep = async (status_now) => {
     try {
@@ -213,7 +226,23 @@ function Requirement() {
           </div>
 
       </div>
-
+<Modal show={showModal} onHide={() => setShowModal(false)}>
+  <Modal.Header closeButton className="d-flex justify-content-between">
+    <Modal.Title></Modal.Title>
+    <img src={instAI_newicon} alt="InstAI Icon" style={{ width: '170px', height: '58px', marginLeft: "140px" }} />
+  </Modal.Header>
+  <Modal.Body className="text-center">{modalMessage}</Modal.Body>
+  <Modal.Footer className="justify-content-center">
+    <Button variant="secondary" onClick={() => setShowModal(false)} className="mr-2">
+      Close
+    </Button>
+    {modalCallback && (
+      <Button variant="primary" onClick={() => { modalCallback(); setShowModal(false); }} className="ml-2">
+        OK
+      </Button>
+    )}
+  </Modal.Footer>
+</Modal>
 
     </div>
   );

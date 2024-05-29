@@ -4,6 +4,9 @@ import axios from 'axios';
 import InstAI_icon from "../../image/instai_icon.png";
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { BounceLoader } from 'react-spinners';
+import { Modal, Button } from "react-bootstrap";
+import instAI_newicon from "../../image/iconnew.png";
+
 function Step() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -31,6 +34,7 @@ function Step() {
     "Model training in process": 6,
     "Model training completed": 7
   };
+
   // 獲取狀態
   const fetchstep = async () => {
     try {
@@ -70,11 +74,6 @@ function Step() {
       console.error('Error fetching data:', error);
     }
   }
-
-
-  // console.log("status is", status)
-  // console.log("step is", step);
-
   const fetchModel = async () => {
 
     try {
@@ -144,6 +143,10 @@ function Step() {
   }, []);
   // 修改狀態
 
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalCallback, setModalCallback] = useState(null);
+
   // 邏輯判斷區域
   // 狀態一修改 資料上傳
   const Green1 = () => {
@@ -151,16 +154,20 @@ function Step() {
     if (step > 1) {
       str = "預覽資料";
     }
-    const userConfirm = window.confirm(str);
-    if (userConfirm) {
+    setModalMessage(str);
+    setShowModal(true);
+  
+    // 定義一個函數，該函數將在用戶點擊 "OK" 按鈕時執行
+    const callback = () => {
       if (step === 1) {
         navigate(`/UploadImg?projectname=${projectname}`);
-      }
-      else {
-        alert('導覽至上傳圖片顯示');
+      } else {
         navigate(`/ViewData?projectname=${projectname}`);
       }
-    }
+    };
+  
+    // 將這個函數設定為 modalCallback
+    setModalCallback(() => callback);
   };
   // 狀態二修改 需求填寫
   const Green2 = () => {
@@ -168,63 +175,77 @@ function Step() {
     if (step > 2) {
       str = "預覽需求";
     }
-    const userConfirm = window.confirm(str);
-    if (userConfirm) {
+    setModalMessage(str);
+    setShowModal(true);
+  
+    // 定義一個函數，該函數將在用戶點擊 "OK" 按鈕時執行
+    const callback = () => {
       if (step < 2) {
-        alert("請照步驟執行")
+        alert("請照步驟執行");
       }
       else if (step === 2) {
         navigate(`/Requirment?projectname=${projectname}`);
       }
       else if (step > 2) {
-        navigate(`/ViewReq?projectname=${projectname}`)
+        navigate(`/ViewReq?projectname=${projectname}`);
       }
-    }
+    };
+  
+    // 將這個函數設定為 modalCallback
+    setModalCallback(() => callback);
   };
-  // 狀態三之一修改 檢查確認資料
+  
   const handleFormDataChange = () => {
-    const userConfirm = window.confirm("圖片檢查");
-    if (userConfirm) {
+    var str = "圖片檢查";
+    setModalMessage(str);
+    setShowModal(true);
+  
+    // 定義一個函數，該函數將在用戶點擊 "OK" 按鈕時執行
+    const callback = () => {
       if (step === 3) {
         navigate(`/ConfirmImg?projectname=${projectname}`);
-      }
-      else {
+      } else {
         alert("請照步驟執行");
       }
-    }
+    };
+  
+    // 將這個函數設定為 modalCallback
+    setModalCallback(() => callback);
   };
-  // 狀態三之二修改 檢查確認需求
+  
   const handleForm2DataChange = () => {
-    const userConfirm = window.confirm("需求檢查");
-    if (userConfirm) {
+    var str = "需求檢查";
+    setModalMessage(str);
+    setShowModal(true);
+  
+    // 定義一個函數，該函數將在用戶點擊 "OK" 按鈕時執行
+    const callback = () => {
       if (step === 4) {
         navigate(`/ConfirmReq?projectname=${projectname}`);
-      }
-      else {
+      } else {
         alert("請照步驟執行");
       }
-    }
+    };
+  
+    // 將這個函數設定為 modalCallback
+    setModalCallback(() => callback);
   };
+  
   //
   const navigateLogic = () => {
-    const userConfirm = window.confirm("模型訓練");
-    if (userConfirm) {
-
+    var str = "模型訓練";
+    setModalMessage(str);
+    setShowModal(true);
+  
+    // 定義一個函數，該函數將在用戶點擊 "OK" 按鈕時執行
+    const callback = () => {
       changeStep();
-
-
-      // if (step === 5) {
-      //   navigate(`/Model?projectname=${projectname}`);
-      // }
-      // else {
-      //   alert("請照步驟執行");
-      // }
-    }
-    else {
-      return;
-    }
-
-  }
+    };
+  
+    // 將這個函數設定為 modalCallback
+    setModalCallback(() => callback);
+  };
+  
 
   const handleInfernce = () =>{
     navigate(`/Inference?projectname=${projectname}`);
@@ -549,6 +570,23 @@ function Step() {
 
         </div>
       </div>
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+  <Modal.Header closeButton className="d-flex justify-content-between">
+    <Modal.Title></Modal.Title>
+    <img src={instAI_newicon} alt="InstAI Icon" style={{ width: '170px', height: '58px', marginLeft: "140px" }} />
+  </Modal.Header>
+  <Modal.Body className = "text-center">{modalMessage}</Modal.Body>
+  <Modal.Footer className="justify-content-center">
+    <Button variant="secondary" onClick={() => setShowModal(false)} className="mr-2">
+      NO
+    </Button>
+    {modalCallback && (
+      <Button variant="primary" onClick={() => { modalCallback(); setShowModal(false); }} className="ml-2">
+        OK
+      </Button>
+    )}
+  </Modal.Footer>
+</Modal>
 
     </div>
   );

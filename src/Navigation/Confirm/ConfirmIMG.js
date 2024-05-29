@@ -4,6 +4,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import './ConfirmIMG.css';
 import InstAI_icon from '../../image/instai_icon.png';
 import { BounceLoader } from 'react-spinners';
+import { Modal, Button } from "react-bootstrap";
+import instAI_newicon from "../../image/iconnew.png";
 
 function ConfirmImg() {
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -14,6 +16,7 @@ function ConfirmImg() {
   const [currentToUploadPage, setCurrentToUploadPage] = useState(1);
   const [imgsPerPage] = useState(10);
   const [imgType, setImgType] = useState(0);
+  
 
   const searchParams = new URLSearchParams(location.search);
   const id = localStorage.getItem("userId");
@@ -39,7 +42,9 @@ function ConfirmImg() {
   // Change ToUpload page
   const paginateToUpload = (pageNumber) => setCurrentToUploadPage(pageNumber);
 
-
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalCallback, setModalCallback] = useState(null);
 
 
 
@@ -104,41 +109,43 @@ function ConfirmImg() {
 
   const handleDeleteImage = async (index) => {
     const pn = projectname
-    // console.log(pn)
-    const confirmDelete = window.confirm('確定要刪除圖片?');
-    if (!confirmDelete) {
-      return;
-    }
-    const updatedPreviews = [...imagePreviews];
-    const deletedImage = updatedPreviews.splice(index, 1)[0];
-
-    setImagePreviews(updatedPreviews);
-    try {
-      const token = localStorage.getItem("jwtToken");
-      // console.log(pn)
-      await axios.post(`${upload_deleteimg}?username=${id}&projectname=${pn}`, { filename: deletedImage }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      alert('Delete success');
-    } catch (error) {
-      console.error('Error deleting image:', error);
-    }
+    setModalMessage('確定要刪除圖片?');
+    setModalCallback(async () => {
+      const updatedPreviews = [...imagePreviews];
+      const deletedImage = updatedPreviews.splice(index, 1)[0];
+  
+      setImagePreviews(updatedPreviews);
+      try {
+        const token = localStorage.getItem("jwtToken");
+        await axios.post(`${upload_deleteimg}?username=${id}&projectname=${pn}`, { filename: deletedImage }, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        setModalMessage('Delete success');
+        setShowModal(true);
+      } catch (error) {
+        console.error('Error deleting image:', error);
+      }
+    });
+    setShowModal(true);
   };
+  
 
   const handleDeletepreviewImage = (index) => {
     const updatedFiles = [...selectedFiles];
     const updatedPreviews = [...imagePreviews2];
-
+  
     updatedFiles.splice(index, 1);
     updatedPreviews.splice(index, 1);
-
+  
     setSelectedFiles(updatedFiles);
     setImagePreviews2(updatedPreviews);
-    alert("Img deleted!")
+    setModalMessage("Img deleted!");
+    setShowModal(true);
   };
+  
   const handleFileSelect = async (event) => {
     const files = event.target.files;
     const fileArray = Array.from(files);
@@ -173,35 +180,39 @@ function ConfirmImg() {
       changeStep("Requirement confirmation");
     }
   };
-
   const handleCancelConfirmation = () => {
-    const userConfirmed = window.confirm('Are you sure you want to cancel the confirmation?');
-    if (userConfirmed) {
+    setModalMessage('Are you sure you want to cancel the confirmation?');
+    setModalCallback(() => {
       localStorage.setItem(`confirmStatusImg_${id}_${projectname}`, 'false');
       setConfirmed2(false);
-    }
+    });
+    setShowModal(true);
   };
-
+  
   const handleConfirmRequirement = () => {
-    const userConfirmed = window.confirm('Are you sure you want to confirm the Imgs?');
-    if (userConfirmed) {
+    setModalMessage('Are you sure you want to confirm the Imgs?');
+    setModalCallback(() => {
       localStorage.setItem(`confirmStatusImg_${id}_${projectname}`, 'true');
       setConfirmed2(true);
-    }
+    });
+    setShowModal(true);
   };
-
   const handleGoBack = () => {
     if (!confirmed2) {
-      const userConfirmed = window.confirm('You have not confirmed the Imgs. Are you sure you want to go back?');
-      if (!userConfirmed) {
-        return;
-      }
+      setModalMessage('You have not confirmed the Imgs. Are you sure you want to go back?');
+      setModalCallback(() => {
+        navigate(`/Step?project=${projectname}`);
+      });
+      setShowModal(true);
+    } else {
+      setModalMessage('Back to step page');
+      setShowModal(true);
+      setModalCallback(() => {
+        navigate(`/Step?project=${projectname}`);
+      });
     }
-    if (confirmed2) {
-      window.alert('Back to step page');
-    }
-    navigate(`/Step?project=${projectname}`);
   };
+  
 
   const changeStep = async (status_now) => {
     try {
@@ -220,63 +231,63 @@ function ConfirmImg() {
       console.error('Error fetching data:', error);
     }
   }
-
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
-      alert('請選擇要上傳的圖片!');
+      setModalMessage('請選擇要上傳的圖片!');
+      setShowModal(true);
     }
     else {
-      const confirmUpload = window.confirm('確定要新增圖片?');
-      if (!confirmUpload) {
-        return;
-      }
-
-      const formData = new FormData();
-      for (let i = 0; i < selectedFiles.length; ++i) {
-        formData.append('file', selectedFiles[i]);
-      }
-      // console.log(selectedFiles.length);
-      try {
-        const token = localStorage.getItem('jwtToken');
-        const response = await axios.post(
-          `${u}?username=${id}&projectname=${projectname}`,
-          formData,
-          {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              'Authorization': `Bearer ${token}`
+      setModalMessage('確定要新增圖片?');
+      setModalCallback(async () => {
+        const formData = new FormData();
+        for (let i = 0; i < selectedFiles.length; ++i) {
+          formData.append('file', selectedFiles[i]);
+        }
+  
+        try {
+          const token = localStorage.getItem('jwtToken');
+          const response = await axios.post(
+            `${u}?username=${id}&projectname=${projectname}`,
+            formData,
+            {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': `Bearer ${token}`
+              }
             }
-          }
-        );
-        // console.log(response.data);
-        alert('Upload success');
-        setSelectedFiles([]);
-        setImagePreviews2([]);
-        fetchData();
-      } catch (error) {
-        console.error('Error uploading data:', error);
-      }
-
-      try {
-        const token = localStorage.getItem('jwtToken');
-        const formData2 = { quantity : imagePreviews.length + imagePreviews2.length , username : id , projectname : projectname};
-        const response3 = await axios.post(
-          `${m_i}/?step=1&username=${id}&projectname=${projectname}`,
-          formData2,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            }
-          });
-        
-        console.log(response3.data);
-      } catch (error) {
-        console.error('Error updating img quantity:', error);
-      }
-      setImgType(0)
+          );
+          setModalMessage('Upload success');
+          setShowModal(true);
+          setSelectedFiles([]);
+          setImagePreviews2([]);
+          fetchData();
+        } catch (error) {
+          console.error('Error uploading data:', error);
+        }
+  
+        try {
+          const token = localStorage.getItem('jwtToken');
+          const formData2 = { quantity : imagePreviews.length + imagePreviews2.length , username : id , projectname : projectname};
+          const response3 = await axios.post(
+            `${m_i}/?step=1&username=${id}&projectname=${projectname}`,
+            formData2,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              }
+            });
+          
+          console.log(response3.data);
+        } catch (error) {
+          console.error('Error updating img quantity:', error);
+        }
+        setImgType(0)
+      });
+      setShowModal(true);
     }
   };
+  
 
   const handleChangeToUpload = async () => {
     setImgType(1)
@@ -288,22 +299,7 @@ function ConfirmImg() {
     console.log(imgType)
   }
 
-  // 跳轉到sd 生圖片功能
-  const handleSDlogic = async (projectname) => {
-    chance = await getCount(projectname);
-    const confirmed = window.confirm("生圖次數總共", chance, "次");
-    if (!confirmed) {
-      return
-    } else {
-      if (chance > 0) {
-        const projectname_confirm1 = projectname
-        // console.log(projectname_confirm1);
-        navigate(`/ModelSelectionPage?project=${projectname}`, { state: { projectname_confirm1 } });
-      }
-      console.log("沒次數還想生圖鴉 ? ");
-      return;
-    }
-  }
+
 
   return (
 
@@ -502,7 +498,23 @@ function ConfirmImg() {
 
       </div>
 
-
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+  <Modal.Header closeButton className="d-flex justify-content-between">
+    <Modal.Title></Modal.Title>
+    <img src={instAI_newicon} alt="InstAI Icon" style={{ width: '170px', height: '58px', marginLeft: "140px" }} />
+  </Modal.Header>
+  <Modal.Body className="text-center">{modalMessage}</Modal.Body>
+  <Modal.Footer className="justify-content-center">
+    <Button variant="secondary" onClick={() => setShowModal(false)} className="mr-2">
+      NO
+    </Button>
+    {modalCallback && (
+      <Button variant="primary" onClick={() => { modalCallback(); setShowModal(false); }} className="ml-2">
+        OK
+      </Button>
+    )}
+  </Modal.Footer>
+</Modal>
 
 
     </div>

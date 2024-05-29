@@ -5,6 +5,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import InstAI_icon from "../../image/instai_icon.png";
 import { FaRegClock } from 'react-icons/fa';
 import { Container } from "react-bootstrap";
+import { Modal, Button } from "react-bootstrap";
+import instAI_newicon from "../../image/iconnew.png";
 
 function UploadImg() {
   const navigate = useNavigate();
@@ -96,22 +98,6 @@ function UploadImg() {
     setImagePreviews([]);
     setSelectedFiles([]);
   };
-  const selectModel = () => {
-    if (mode === false) {
-      const confirmation = window.confirm("你想要關掉篩選模式功能並且無限制上傳圖片嗎?");
-      if (confirmation) {
-        setMode(true);
-        // 可以將格式篩選的功能關掉，變成無限制上傳照片並且都會顯示照片
-      }
-    } else if (mode === true) {
-      const confirmationWithFilter = window.confirm("你想要開啟篩選模式功能對上傳的照片做尺寸篩選嗎");
-      if (confirmationWithFilter) {
-        setMode(false);
-        // 在這裡添加對篩選模式的相關邏輯
-      }
-    }
-    // console.log(mode);
-  }
   // 下載預覽 //modified
   const handleDownloadAll = () => {
     selectedFiles.forEach((file) => {
@@ -143,28 +129,30 @@ function UploadImg() {
     }
   }
 
-  const handleUpload = async () => {
-    if (selectedFiles.length === 0) {
-      alert('請選擇要上傳的圖片!');
-    }
-    else if (selectedFiles.length < 10) {
-      alert('请至少選擇10張合格的照片!');
-      return;
-    }
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalCallback, setModalCallback] = useState(null);
 
-    else {
-      const confirmDelete = window.confirm('要求已經滿足,確定要上傳圖片?');
-      if (!confirmDelete) {
-        return;
-      }
+const handleUpload = async () => {
+  if (selectedFiles.length === 0) {
+    setModalMessage('請選擇要上傳的圖片!');
+    setShowModal(true);
+  }
+  else if (selectedFiles.length < 10) {
+    setModalMessage('请至少選擇10張合格的照片!');
+    setShowModal(true);
+    return;
+  }
+
+  else {
+    setModalMessage('要求已經滿足,確定要上傳圖片?');
+    setModalCallback(async () => {
       setLoading(true);
       const uploaded = [...selectedFiles];
       const formData = new FormData();
       for (let i = 0; i < uploaded.length; ++i) {
-        //console.log(uploaded[i]);
         formData.append('file', uploaded[i]);
       }
-      //console.log(formData);
 
       try {
         const token = localStorage.getItem('jwtToken');
@@ -178,10 +166,9 @@ function UploadImg() {
               'Authorization': `Bearer ${token}`
             }
           });
-        // console.log(response.data);
-        alert(response.data.message);
+        setModalMessage(response.data.message);
+        setShowModal(true);
 
-        // console.log(token);
         const response2 = await axios.post(
           `${c_s}/?step=1&username=${id}&projectname=${projectname}`,
           {},
@@ -193,11 +180,7 @@ function UploadImg() {
           }
         );
         setLoading(false);
-        // console.log('step updated successfully:', response2.data);
         navigate(`/Step?project=${projectname}`);
-        
-       
-
       } catch (error) {
         console.error('Error sending data to backend:', error);
       }
@@ -219,11 +202,11 @@ function UploadImg() {
       } catch (error) {
         console.error('Error updating img quantity:', error);
       }
-    }
-  };
-  useEffect(() => {
-    // console.log("loading state test is ", loading);
-  }, [loading, setLoading, handleUpload]);
+    });
+    setShowModal(true);
+  }
+};
+
 
   return (
     <div className="container-fluid p-0 mt-3">
@@ -352,7 +335,23 @@ function UploadImg() {
       </div>
 
 
-
+<Modal show={showModal} onHide={() => setShowModal(false)}>
+  <Modal.Header closeButton className="d-flex justify-content-between">
+    <Modal.Title></Modal.Title>
+    <img src={instAI_newicon} alt="InstAI Icon" style={{ width: '170px', height: '58px', marginLeft: "140px" }} />
+  </Modal.Header>
+  <Modal.Body className="text-center">{modalMessage}</Modal.Body>
+  <Modal.Footer className="justify-content-center">
+    <Button variant="secondary" onClick={() => setShowModal(false)} className="mr-2">
+      NO
+    </Button>
+    {modalCallback && (
+      <Button variant="primary" onClick={() => { modalCallback(); setShowModal(false); }} className="ml-2">
+        OK
+      </Button>
+    )}
+  </Modal.Footer>
+</Modal>
 
 
 

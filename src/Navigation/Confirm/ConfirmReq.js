@@ -4,6 +4,8 @@ import axios from 'axios';
 import './ConfirmSTR.css';
 import InstAI_icon from '../../image/instai_icon.png';
 import { BounceLoader } from 'react-spinners';
+import { Modal, Button } from "react-bootstrap";
+import instAI_newicon from "../../image/iconnew.png";
 
 function ConfirmReq() {
   const [reqData, setReqData] = useState({});
@@ -16,7 +18,9 @@ function ConfirmReq() {
   const c_s = process.env.REACT_APP_CONFIRM_STEP;
   const navigate = useNavigate();
   const [confirmed, setConfirmed] = useState(JSON.parse(localStorage.getItem(`confirmStatusReq_${id}_${projectname}`) || 'false'));
-  const [, forceUpdate] = useState();
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalCallback, setModalCallback] = useState(null);
 
   const get_req = process.env.REACT_APP_GET_REQUIREMENT;
   const upload_req = process.env.REACT_APP_UPLOAD_REQUIREMENT;
@@ -89,52 +93,7 @@ function ConfirmReq() {
         message: "傳輸成功",
       },
     };
-    // try {
-    //   const token = localStorage.getItem('jwtToken');
-    //   const response = await axios.post(
-    //     `${upload_req}/?username=${id}&projectname=${projectname}`,
-    //     requestData, {
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //         'Authorization': `Bearer ${token}`
-    //       }
-    //     }
-    //   );
-
-    //   console.log('Data updated successfully:', response.data);
-
-     
-    //   setEditable(false);
-    // } catch (error) {
-    //   console.error('Error updating data:', error);
-    // }
-
-    
-      
-    // try {
-    //   const token = localStorage.getItem('jwtToken');
-     
-    //   const response = await axios.get(
-    //     `${get_req}/?username=${id}&projectname=${projectname}`, {
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //       'Authorization': `Bearer ${token}`
-    //     }
-    //   });
-    //   const responseData = response.data.content;
-    //   const parsedData = {};
-    //   responseData.forEach(item => {
-    //     const parsedItem = JSON.parse(`{${item}}`);
-    //     Object.assign(parsedData, parsedItem);
-    //   });
-    //   setReqData(parsedData);
-    //   console.log(responseData)
-    //   alert('Requirement update success!');
-    //   console.log(reqData)
-    // } catch (error) {
-    //   console.error('Error fetching data:', error);
-    // }
-
+  
     try {
       const token = localStorage.getItem('jwtToken');
       const response = await axios.post(
@@ -146,16 +105,14 @@ function ConfirmReq() {
           }
         }
       );
-    
-      // console.log('Data updated successfully:', response.data);
-    
+  
       setEditable(false);
-    
+  
       // 等待 5 秒後執行下一個請求
       setTimeout(async () => {
         try {
           const token = localStorage.getItem('jwtToken');
-    
+  
           const response = await axios.get(
             `${get_req}/?username=${id}&projectname=${projectname}`, {
             headers: {
@@ -170,10 +127,9 @@ function ConfirmReq() {
             Object.assign(parsedData, parsedItem);
           });
           setReqData(parsedData);
-          // console.log(responseData);
-          alert('Requirement update success!');
+          setModalMessage('Requirement update success!');
+          setShowModal(true);
           setLoading(false)
-          // console.log(reqData);
         } catch (error) {
           console.error('Error fetching data:', error);
         }
@@ -181,9 +137,8 @@ function ConfirmReq() {
     } catch (error) {
       console.error('Error updating data:', error);
     }
-    
-  
   };
+  
   // 按鈕 設定confirm狀態
   const handleConfirmButtonClick = () => {
     console.log('handleConfirmButtonClick triggered');
@@ -199,37 +154,39 @@ function ConfirmReq() {
       changeStep("Model training ready");
     }
   };
-
   const handleCancelConfirmation = () => {
-    const userConfirmed = window.confirm('Are you sure you want to cancel the confirmation?');
-    if (userConfirmed) {
+    setModalMessage('Are you sure you want to cancel the confirmation?');
+    setModalCallback(() => {
       localStorage.setItem(`confirmStatusReq_${id}_${projectname}`, 'false');
       setConfirmed(false);
-    }
+    });
+    setShowModal(true);
   };
-
+  
   const handleConfirmRequirement = () => {
-    const userConfirmed = window.confirm('Are you sure you want to confirm the requirement?');
-    if (userConfirmed) {
+    setModalMessage('Are you sure you want to confirm the requirement?');
+    setModalCallback(() => {
       localStorage.setItem(`confirmStatusReq_${id}_${projectname}`, 'true');
       setConfirmed(true);
-    }
+    });
+    setShowModal(true);
   };
+  
 
   const handleGoBack = async () => {
     if (!confirmed) {
-      const userConfirmed = window.confirm('You have not confirmed the requirement. Are you sure you want to go back?');
-      if (userConfirmed) {
+      setModalMessage('You have not confirmed the requirement. Are you sure you want to go back?');
+      setModalCallback(() => {
         navigate(`/Step?project=${projectname}`);
-      } else {
-        return;
-      }
-    }
-
-    else {
+      });
+      setShowModal(true);
+    } else {
       navigate(`/Step?project=${projectname}`);
     }
   };
+  
+  
+  
   // 渲染區域
   const BounceWait = () => {
     return (
@@ -331,7 +288,23 @@ function ConfirmReq() {
 
 
         </>)}
-
+        <Modal show={showModal} onHide={() => setShowModal(false)}>
+  <Modal.Header closeButton className="d-flex justify-content-between">
+    <Modal.Title></Modal.Title>
+    <img src={instAI_newicon} alt="InstAI Icon" style={{ width: '170px', height: '58px', marginLeft: "140px" }} />
+  </Modal.Header>
+  <Modal.Body className="text-center">{modalMessage}</Modal.Body>
+  <Modal.Footer className="justify-content-center">
+    <Button variant="secondary" onClick={() => setShowModal(false)} className="mr-2">
+      NO
+    </Button>
+    {modalCallback && (
+      <Button variant="primary" onClick={() => { modalCallback(); setShowModal(false); }} className="ml-2">
+        OK
+      </Button>
+    )}
+  </Modal.Footer>
+</Modal>
 
     </div>
   );

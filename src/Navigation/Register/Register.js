@@ -3,9 +3,13 @@ import basestyle from "../Base.module.css";
 import registerstyle from "./Register.module.css";
 import axios from "axios";
 import { useNavigate, NavLink } from "react-router-dom";
-import InstAI_icon from '../../image/iconnew.png'
+import InstAI_icon from '../../image/iconnew.png';
+
 import MeteorShower from "../Login/MeteorShower";
 import SignUpBackground from "../../image/SignUpBackground.png";
+
+import instAI_newicon from "../../image/iconnew.png";
+import { Modal, Button } from "react-bootstrap";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -20,6 +24,10 @@ const Register = () => {
     password: "",
     cpassword: "",
   });
+  
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalCallback, setModalCallback] = useState(null);
 
   const changeHandler = (e) => {
     const { name, value } = e.target;
@@ -28,7 +36,7 @@ const Register = () => {
       [name]: value,
     }));
   };
-  //# register regulation verify the form of register table.
+
   const validateForm = (values) => {
     const error = {};
     const regex = /^[^\s+@]+@[^\s@]+\.[^\s@]{2,}$/i;
@@ -66,43 +74,39 @@ const Register = () => {
     e.preventDefault();
     setFormErrors(validateForm(user));
     setIsSubmit(true);
-    // if (!formErrors) {
-    //   setIsSubmit(true);
-    // }
   };
 
-  //# register demo
   useEffect(() => {
     if (Object.keys(formErrors).length === 0 && isSubmit) {
-      console.log(user);
       axios
         .post(`${sign_up}`, user)
         .then((res) => {
-          alert(res.data);
-          navigate("/login", { replace: true });
+          setModalMessage("Register failed. An account is existed ");
+          setModalCallback(() => () => navigate("/login", { replace: true }));
+          setShowModal(true);
+        })
+        .catch((error) => {
+          setModalMessage("An error occurred during registration.");
+          setModalCallback(null);
+          setShowModal(true);
         });
     }
   }, [formErrors]);
-  // web rendering for Register
+
   return (
     background === 0 ? (
       <Fragment>
-
-        {/* <div className={registerstyle.container}> */}
-        <div className="container" style={{ marginTop: "15vh" , }}>
-
+        <div className="container" style={{ marginTop: "15vh" }}>
           <div className="row">
             <div className="col-md-3 mx-auto">
-              <img src={InstAI_icon} className="img-fluid" alt="InstAi_Icon" ></img>
+              <img src={InstAI_icon} className="img-fluid" alt="InstAi_Icon" />
             </div>
           </div>
-
-          <div className="row" >
-            <div className="col-md-5  mx-auto">
-
+          <div className="row">
+            <div className="col-md-5 mx-auto">
               <div className={`card rounded-5 ${registerstyle.registercard}`}>
                 <div className="card-body">
-                  <h3 className="card-title text-center " style={{ fontWeight: 'bold' }}>Sign Up</h3>
+                  <h3 className="card-title text-center" style={{ fontWeight: 'bold' }}>Sign Up</h3>
                   <form>
                     <label className="form-label fs-6 mt-2 mb-1 fw-bold">First name</label>
                     <input
@@ -111,71 +115,84 @@ const Register = () => {
                       id="fname"
                       onChange={changeHandler}
                       value={user.fname}
-                      className="form-control fs-6  mt-1 mb-1 fw-bold"
+                      className="form-control fs-6 mt-1 mb-1 fw-bold"
                     />
                     <p className={`text-center ${basestyle.error}`}>{formErrors.fname}</p>
-                    <label className="form-label fs-6  mt-1 mb-1 fw-bold">Last name</label>
+                    <label className="form-label fs-6 mt-1 mb-1 fw-bold">Last name</label>
                     <input
                       type="text"
                       name="lname"
                       id="lname"
                       onChange={changeHandler}
                       value={user.lname}
-                      className="form-control fs-6  mt-1 mb-1 fw-bold"
+                      className="form-control fs-6 mt-1 mb-1 fw-bold"
                     />
                     <p className={`text-center ${basestyle.error}`}>{formErrors.lname}</p>
-                    <label className="form-label fs-6  mt-1 mb-1 fw-bold">Email</label>
+                    <label className="form-label fs-6 mt-1 mb-1 fw-bold">Email</label>
                     <input
                       type="email"
                       name="email"
                       id="email"
                       onChange={changeHandler}
                       value={user.email}
-                      className="form-control fs-6  mt-1 mb-1 fw-bold"
+                      className="form-control fs-6 mt-1 mb-1 fw-bold"
                     />
                     <p className={`text-center ${basestyle.error}`}>{formErrors.email}</p>
-                    <label className="form-label fs-6  mt-1 mb-1 fw-bold">Password</label>
+                    <label className="form-label fs-6 mt-1 mb-1 fw-bold">Password</label>
                     <input
                       type="password"
                       name="password"
                       id="password"
                       onChange={changeHandler}
                       value={user.password}
-                      className="form-control fs-6  mt-1 mb-1 fw-bold"
+                      className="form-control fs-6 mt-1 mb-1 fw-bold"
                     />
                     <p className={`text-center ${basestyle.error}`}>{formErrors.password}</p>
-                    <label className="form-label fs-6  mt-1 mb-1 fw-bold">Confirm password</label>
+                    <label className="form-label fs-6 mt-1 mb-1 fw-bold">Confirm password</label>
                     <input
                       type="password"
                       name="cpassword"
                       id="cpassword"
                       onChange={changeHandler}
                       value={user.cpassword}
-                      className="form-control fs-6  mt-1 mb-1 fw-bold"
+                      className="form-control fs-6 mt-1 mb-1 fw-bold"
                     />
                     <p className={`text-center ${basestyle.error}`}>{formErrors.cpassword}</p>
-                    <button type="button" className={`btn ${basestyle.button_common} `} onClick={signupHandler}>
+                    <button type="button" className={`btn ${basestyle.button_common}`} onClick={signupHandler}>
                       SIGN UP
                     </button>
-                    <NavLink className={`nav-link text-center text-primary `} style={{ fontWeight: 'bold' }} to="/login">
+                    <NavLink className={`nav-link text-center text-primary`} style={{ fontWeight: 'bold' }} to="/login">
                       Sign in to existing account
                     </NavLink>
                   </form>
                   <div className="container-fluid mt-3 d-flex justify-content-center">
-                    <button className="btn bt-sm btn-primary " onClick={handleSwitchBackground}>Switch background</button>
+                    <button className="btn bt-sm btn-primary" onClick={handleSwitchBackground}>Switch background</button>
                   </div>
                 </div>
-
               </div>
               <div className='text-center mt-3'>
                 Have questions? Send email to <b>support@instai.co</b>
               </div>
-
             </div>
           </div>
-
         </div>
-
+        <Modal show={showModal} onHide={() => setShowModal(false)}>
+          <Modal.Header closeButton className="d-flex justify-content-between">
+            <Modal.Title></Modal.Title>
+            <img src={instAI_newicon} alt="InstAI Icon" style={{ width: '170px', height: '58px', marginLeft: "140px" }} />
+          </Modal.Header>
+          <Modal.Body>{modalMessage}</Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>
+              Close
+            </Button>
+            {modalCallback && (
+              <Button variant="primary" onClick={() => { modalCallback(); setShowModal(false); }}>
+                OK
+              </Button>
+            )}
+          </Modal.Footer>
+        </Modal>
       </Fragment>
     ) : (
       <div style={{
@@ -187,7 +204,7 @@ const Register = () => {
         overflow: 'hidden'
       }}>
         <MeteorShower />
-        <React.Fragment>
+        <Fragment>
           <div className="container" style={{ marginTop: "15vh" }}>
             <div className="row">
               <div className="col-md-5 mx-auto">
@@ -248,7 +265,7 @@ const Register = () => {
                         className="form-control fs-6 mt-1 mb-1 fw-bold"
                       />
                       <p className={`text-center ${basestyle.error}`}>{formErrors.cpassword}</p>
-                      <button type="submit" className={`btn ${basestyle.button_common}`}>
+                      <button type="button" className={`btn ${basestyle.button_common}`} onClick={signupHandler}>
                         SIGN UP
                       </button>
                       <NavLink className={`nav-link text-center text-primary`} style={{ fontWeight: 'bold' }} to="/login">
@@ -256,7 +273,7 @@ const Register = () => {
                       </NavLink>
                     </form>
                     <div className="container-fluid mt-3 d-flex justify-content-center">
-                      <button className="btn bt-sm btn-primary " onClick={handleSwitchBackground}>Switch background</button>
+                      <button className="btn bt-sm btn-primary" onClick={handleSwitchBackground}>Switch background</button>
                     </div>
                   </div>
                 </div>
@@ -266,12 +283,27 @@ const Register = () => {
               </div>
             </div>
           </div>
-        </React.Fragment>
+          <Modal show={showModal} onHide={() => setShowModal(false)}>
+            <Modal.Header closeButton className="d-flex justify-content-between">
+              <Modal.Title></Modal.Title>
+              <img src={instAI_newicon} alt="InstAI Icon" style={{ width: '170px', height: '58px', marginLeft: "140px" }} />
+            </Modal.Header>
+            <Modal.Body>{modalMessage}</Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => setShowModal(false)}>
+                Close
+              </Button>
+              {modalCallback && (
+                <Button variant="primary" onClick={() => { modalCallback(); setShowModal(false); }}>
+                  OK
+                </Button>
+              )}
+            </Modal.Footer>
+          </Modal>
+        </Fragment>
       </div>
     )
-
-
   );
-
 };
+
 export default Register;

@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { NavLink, useNavigate} from "react-router-dom";
 import { Navbar, Nav, Container, Button, Form } from "react-bootstrap";
+import { Modal } from "react-bootstrap";
+import instAI_newicon from "../../image/iconnew.png";
+
 import InstAI_icon from "../../image/iconnew.png";
 import { FaRegClock } from 'react-icons/fa';
 // import Autosuggest from 'react-autosuggest';    之後可以加入一些提示詞語 方便下更好的prompt
@@ -21,7 +24,9 @@ export default function ImgPrompt() {
 
   const g_c  = process.env.REACT_APP_GET_IMGCOUNT;
   const [chance, setChance] = useState();
-
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalCallback, setModalCallback] = useState(null);
   const m_c = process.env.REACT_APP_MODIFY_IMGCOUNT;
   const getCount = async (projectname) => {
     try {
@@ -118,21 +123,19 @@ export default function ImgPrompt() {
   }, [formData]); 
 
   const handleChangeState = () => {
-    const confirm = window.confirm("sure to give up?");
-    if (confirm) {
+    setModalMessage("sure to give up?");
+    setModalCallback(() => {
       setState(!state);
-    }
-    else {
-      return;
-    }
-    // 確認是否submit 決定是否要變更狀態
+    });
+    setShowModal(true);
   }
+  
 
 
-  const handleSubmit = useCallback(async (event) => { // 注意這裡需要添加async關鍵字
+  const handleSubmit = useCallback(async (event) => {
     console.log("chance is", chance);
-    const confirm = window.confirm("sure to submit prompt ?");
-    if (confirm) {
+    setModalMessage("sure to submit prompt ?");
+    setModalCallback(async () => {
       // console.log("chance is", chance, " times");
       const num = Math.abs(5 - chance);
       // console.log("number is", num);
@@ -154,7 +157,7 @@ export default function ImgPrompt() {
             setState(!state);
             // console.log(response.data);
             const promptData = formData;
-
+  
             localStorage.setItem(`${projectName}prmoptData`, JSON.stringify(promptData));
             await modifyCount(projectName, chance); // 注意這裡需要添加await關鍵字
             await getCount(projectName);
@@ -168,10 +171,10 @@ export default function ImgPrompt() {
       } else {
         console.log("tan tan tan tan");
       }
-    } else {
-      return;
-    }
+    });
+    setShowModal(true);
   }, [formData, positveprompt, negativeprompt, projectName, prompt, navigate]);
+  
   
   useEffect(() => {
     setFormData(prevState => ({
@@ -185,10 +188,30 @@ export default function ImgPrompt() {
     // console.log(formData.override_settings.sd_model_checkpoint)
   }, [positveprompt, modelTitle, negativeprompt]);
   
+
   return (
     <>
       {state ? (
         <>
+         <Modal show={showModal} onHide={() => setShowModal(false)}>
+  <Modal.Header closeButton className="d-flex justify-content-between">
+    <Modal.Title></Modal.Title>
+    <img src={instAI_newicon} alt="InstAI Icon" style={{ width: '170px', height: '58px', marginLeft: "140px" }} />
+  </Modal.Header>
+  <Modal.Body className="text-center">{modalMessage}</Modal.Body>
+  <Modal.Footer className="justify-content-center">
+  <Button variant="secondary" onClick={() => { setShowModal(false); setModalCallback(null); }} className="mr-2">
+  NO
+</Button>
+
+{modalCallback && (
+  <Button variant="primary" onClick={() => { if (typeof modalCallback === 'function') { modalCallback(); } setShowModal(false); }} className="ml-2">
+    OK
+  </Button>
+)}
+
+  </Modal.Footer>
+</Modal>
           <Navbar style={{ backgroundColor: 'WHITE', boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)' }} className="row rol-cols-3 justify-content-center">
               <div className="col-4">
               <Nav className="mr-auto" style={{ marginLeft: "10px" }}>
@@ -238,6 +261,25 @@ export default function ImgPrompt() {
       ) : (
         <>
           {/* 這裡是當state為false時顯示的內容 */}
+          <Modal show={showModal} onHide={() => setShowModal(false)}>
+  <Modal.Header closeButton className="d-flex justify-content-between">
+    <Modal.Title></Modal.Title>
+    <img src={instAI_newicon} alt="InstAI Icon" style={{ width: '170px', height: '58px', marginLeft: "140px" }} />
+  </Modal.Header>
+  <Modal.Body className="text-center">{modalMessage}</Modal.Body>
+  <Modal.Footer className="justify-content-center">
+  <Button variant="secondary" onClick={() => { setShowModal(false); setModalCallback(null); }} className="mr-2">
+  NO
+</Button>
+
+{modalCallback && (
+  <Button variant="primary" onClick={() => { if (typeof modalCallback === 'function') { modalCallback(); } setShowModal(false); }} className="ml-2">
+    OK
+  </Button>
+)}
+
+  </Modal.Footer>
+</Modal>
           <div style={{ backgroundColor: 'WHITE' }}>
             <Navbar style={{ backgroundColor: 'WHITE', boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)' }} className="row rol-cols-3 justify-content-center">
               <div className="col-4">
